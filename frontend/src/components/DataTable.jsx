@@ -75,7 +75,7 @@ export const DataTable = ({ filters }) => {
           orderType: filters?.orderType?.join(',') || ''
         };
 
-        const response = await axios.get('http://localhost:5000/api/sales', { params });
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://california-dashboard-api.onrender.com'}/api/sales`, { params });
         if (isMounted) {
           setData(response.data.data);
           setTotalCount(response.data.total);
@@ -163,7 +163,7 @@ export const DataTable = ({ filters }) => {
         orderType: filters?.orderType?.join(',') || ''
       };
       
-      const response = await axios.get('http://localhost:5000/api/sales', { params });
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://california-dashboard-api.onrender.com'}/api/sales`, { params });
       const today = new Date();
       const yyyy = today.getFullYear();
       const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -195,7 +195,7 @@ export const DataTable = ({ filters }) => {
         orderType: filters?.orderType?.join(',') || ''
       };
       
-      const response = await axios.get('http://localhost:5000/api/sales', { params });
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://california-dashboard-api.onrender.com'}/api/sales`, { params });
       const today = new Date();
       const yyyy = today.getFullYear();
       const mm = String(today.getMonth() + 1).padStart(2, '0');

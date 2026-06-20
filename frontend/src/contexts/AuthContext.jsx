@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-const BACKEND_URL = 'http://localhost:5000/api/auth';
+const BACKEND_URL = `${import.meta.env.VITE_API_URL || 'https://california-dashboard-api.onrender.com'}/api/auth`;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

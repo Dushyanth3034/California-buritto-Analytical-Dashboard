@@ -66,7 +66,7 @@ export const Dashboard = () => {
         settlement: filters?.settlement?.join(',') || '',
         orderType: filters?.orderType?.join(',') || ''
       };
-      const response = await axios.get('http://localhost:5000/api/sales', { params });
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://california-dashboard-api.onrender.com'}/api/sales`, { params });
       const { exportToCSV } = await import('../utils/exportUtils');
       const today = new Date();
       const yyyy = today.getFullYear();
@@ -95,7 +95,7 @@ export const Dashboard = () => {
         settlement: filters?.settlement?.join(',') || '',
         orderType: filters?.orderType?.join(',') || ''
       };
-      const response = await axios.get('http://localhost:5000/api/sales', { params });
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://california-dashboard-api.onrender.com'}/api/sales`, { params });
       const { exportToExcel } = await import('../utils/exportUtils');
       const today = new Date();
       const yyyy = today.getFullYear();
