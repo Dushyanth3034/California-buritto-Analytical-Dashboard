@@ -139,9 +139,9 @@ export const Navbar = ({ datasetSize, scaleDataset, uploadExcelData, isLoading, 
 
       {/* Collapsible Mobile/Tablet Drawer overlay */}
       {isOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-zinc-950/70 dark:bg-zinc-950/80 backdrop-blur-sm transition-all" onClick={() => setIsOpen(false)}>
+        <div className="lg:hidden fixed inset-0 z-[9999] bg-zinc-950/50 dark:bg-zinc-950/70 backdrop-blur-sm transition-all" onClick={() => setIsOpen(false)}>
           <div 
-            className="fixed top-16 right-0 bottom-0 w-[80vw] max-w-[320px] bg-white dark:bg-zinc-950 border-l border-surface-lightBorder dark:border-surface-darkBorder p-5 flex flex-col gap-4 shadow-2xl transition-transform duration-300 overflow-y-auto"
+            className="fixed top-16 right-3 w-[80vw] max-w-[320px] rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white dark:bg-zinc-950 p-5 flex flex-col gap-4 shadow-2xl overflow-y-auto max-h-[80vh] transition-all duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xs font-bold text-text-lightSecondary dark:text-text-darkSecondary uppercase tracking-wider">
