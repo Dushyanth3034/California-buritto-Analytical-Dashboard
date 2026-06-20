@@ -77,7 +77,7 @@ export const OrderTypeChart = ({ data }) => {
     : totalOrders;
 
   return (
-    <div className="w-full h-full flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm">
+    <div className="w-full h-full flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm overflow-hidden">
       
       {/* Title Header */}
       <div>
@@ -93,7 +93,7 @@ export const OrderTypeChart = ({ data }) => {
       <div className="w-full h-[240px] mt-2 flex justify-center items-center relative min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip />} wrapperStyle={{ pointerEvents: 'none' }} />
             <Pie
               data={data}
               cx="50%"
@@ -127,7 +127,7 @@ export const OrderTypeChart = ({ data }) => {
       </div>
 
       {/* Horizontal Percentage Breakdown Row */}
-      <div className="flex justify-between border-t border-b border-surface-lightBorder dark:border-surface-darkBorder py-3 my-2 text-xs font-semibold text-text-lightSecondary dark:text-text-darkSecondary select-none">
+      <div className="flex flex-wrap justify-between gap-2 md:gap-0 border-t border-b border-surface-lightBorder dark:border-surface-darkBorder py-3 my-2 text-xs font-semibold text-text-lightSecondary dark:text-text-darkSecondary select-none">
         {legendItems.map((item, idx) => (
           <div key={idx} className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />

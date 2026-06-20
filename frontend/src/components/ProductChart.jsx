@@ -60,10 +60,9 @@ export const ProductChart = ({ data }) => {
     const text = payload.value;
     let lines = [text];
 
-    if (windowWidth < 640) {
-      // Mobile: truncate with ellipses to fit narrow layout
-      const truncateLimit = 15;
-      lines = [text.length > truncateLimit ? `${text.slice(0, truncateLimit)}...` : text];
+    if (windowWidth < 768) {
+      // Mobile: wrap words into multiple lines with a shorter length limit (e.g. 15) to fit narrow layout
+      lines = wrapText(text, 15);
     } else if (windowWidth < 1024) {
       // Tablet: wrap words into multiple lines
       lines = wrapText(text, 14);
@@ -78,7 +77,7 @@ export const ProductChart = ({ data }) => {
           x={-10}
           y={-(lines.length - 1) * 4}
           textAnchor="end"
-          className="text-[9px] font-bold fill-text-lightSecondary dark:fill-text-darkSecondary"
+          className={windowWidth < 768 ? "text-[8px] font-bold fill-text-lightSecondary dark:fill-text-darkSecondary" : "text-[9px] font-bold fill-text-lightSecondary dark:fill-text-darkSecondary"}
         >
           {lines.map((line, idx) => (
             <tspan key={idx} x={-10} dy={idx === 0 ? 3 : 10}>
@@ -92,12 +91,12 @@ export const ProductChart = ({ data }) => {
 
   if (!isMounted || !data || data.length === 0) {
     return (
-      <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm animate-pulse">
+      <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm animate-pulse overflow-hidden">
         <div>
           <div className="h-3.5 w-32 bg-zinc-100 dark:bg-zinc-800/60 rounded" />
           <div className="h-2.5 w-48 bg-zinc-100 dark:bg-zinc-800/60 rounded mt-2" />
         </div>
-        <div className="w-full h-[450px] sm:h-[550px] mt-4 flex justify-center items-center">
+        <div className="w-full h-[500px] sm:h-[550px] mt-4 flex justify-center items-center">
           <div className="h-6 w-6 rounded-full border-2 border-zinc-200 dark:border-zinc-800 border-t-primary animate-spin" />
         </div>
       </div>
@@ -105,7 +104,7 @@ export const ProductChart = ({ data }) => {
   }
 
   return (
-    <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm">
+    <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm overflow-hidden">
       <div>
         <h3 className="text-xs font-bold text-text-lightSecondary dark:text-text-darkSecondary uppercase tracking-wider">
           Top Selling Products
@@ -115,14 +114,14 @@ export const ProductChart = ({ data }) => {
         </p>
       </div>
 
-      {/* Increased height to 450px on mobile and 550px on tablet/desktop to offer rows ample vertical height */}
-      <div className="w-full h-[450px] sm:h-[550px] mt-4 min-w-0">
+      {/* Increased height to 500px on mobile and 550px on tablet/desktop to offer rows ample vertical height */}
+      <div className="w-full h-[500px] sm:h-[550px] mt-4 min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             layout="vertical"
             data={data}
-            // Expanded left margin to 120px to prevent Y-axis labels from overlapping into the chart body
-            margin={{ top: 20, right: 30, left: 120, bottom: 20 }}
+            // Mobile: left margin 0, bottom margin 40
+            margin={windowWidth < 768 ? { top: 10, right: 10, left: 0, bottom: 40 } : { top: 20, right: 30, left: 120, bottom: 20 }}
           >
             <CartesianGrid 
               strokeDasharray="3 3" 
@@ -143,9 +142,9 @@ export const ProductChart = ({ data }) => {
               tickLine={false}
               axisLine={false}
               className="text-[9px] font-semibold fill-text-lightSecondary dark:fill-text-darkSecondary"
-              width={110}
+              width={windowWidth < 768 ? 90 : 110}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} wrapperStyle={{ pointerEvents: 'none' }} />
             <Bar 
               dataKey="revenue" 
               fill="#34D399" 

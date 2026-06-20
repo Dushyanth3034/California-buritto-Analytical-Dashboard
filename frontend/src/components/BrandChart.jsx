@@ -23,8 +23,16 @@ const CustomTooltip = ({ active, payload }) => {
 
 export const BrandChart = ({ data }) => {
   const [isMounted, setIsMounted] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
+
   React.useEffect(() => {
     setIsMounted(true);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const formatYAxis = (value) => {
@@ -35,7 +43,7 @@ export const BrandChart = ({ data }) => {
 
   if (!isMounted || !data || data.length === 0) {
     return (
-      <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm animate-pulse">
+      <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm animate-pulse overflow-hidden">
         <div>
           <div className="h-3.5 w-32 bg-zinc-100 dark:bg-zinc-800/60 rounded" />
           <div className="h-2.5 w-48 bg-zinc-100 dark:bg-zinc-800/60 rounded mt-2" />
@@ -48,7 +56,7 @@ export const BrandChart = ({ data }) => {
   }
 
   return (
-    <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm">
+    <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm overflow-hidden">
       <div>
         <h3 className="text-xs font-bold text-text-lightSecondary dark:text-text-darkSecondary uppercase tracking-wider">
           Revenue by Brand
@@ -62,7 +70,7 @@ export const BrandChart = ({ data }) => {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
-            margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+            margin={isMobile ? { top: 10, right: 10, left: 0, bottom: 40 } : { top: 10, right: 10, left: 10, bottom: 0 }}
           >
             <CartesianGrid 
               strokeDasharray="3 3" 
@@ -73,16 +81,20 @@ export const BrandChart = ({ data }) => {
               dataKey="name" 
               tickLine={false}
               axisLine={false}
-              className="text-[9px] font-semibold fill-text-lightSecondary dark:fill-text-darkSecondary"
+              className={isMobile ? "text-[8px] font-semibold fill-text-lightSecondary dark:fill-text-darkSecondary" : "text-[9px] font-semibold fill-text-lightSecondary dark:fill-text-darkSecondary"}
+              interval={0}
+              angle={isMobile ? -45 : 0}
+              textAnchor={isMobile ? "end" : "middle"}
+              height={isMobile ? 55 : 30}
             />
             <YAxis 
               tickFormatter={formatYAxis}
               tickLine={false}
               axisLine={false}
               className="text-[9px] font-semibold fill-text-lightSecondary dark:fill-text-darkSecondary"
-              width={55}
+              width={isMobile ? 40 : 55}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} wrapperStyle={{ pointerEvents: 'none' }} />
             <Bar 
               dataKey="revenue" 
               fill="#9DFF3D" 

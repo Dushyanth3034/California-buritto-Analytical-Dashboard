@@ -26,8 +26,16 @@ const CustomTooltip = ({ active, payload }) => {
  */
 export const RevenueChart = ({ data }) => {
   const [isMounted, setIsMounted] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
+
   React.useEffect(() => {
     setIsMounted(true);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Format Y Axis labels
@@ -89,7 +97,7 @@ export const RevenueChart = ({ data }) => {
   }
 
   return (
-    <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm">
+    <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm overflow-hidden">
       <div className="flex justify-between items-center mb-4">
         <div>
           <h3 className="text-xs font-bold text-text-lightSecondary dark:text-text-darkSecondary uppercase tracking-wider">
@@ -105,7 +113,7 @@ export const RevenueChart = ({ data }) => {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
-            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            margin={isMobile ? { top: 10, right: 10, left: 0, bottom: 40 } : { top: 10, right: 10, left: -20, bottom: 0 }}
           >
             <defs>
               <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
@@ -130,10 +138,11 @@ export const RevenueChart = ({ data }) => {
               tickFormatter={formatYAxis}
               tickLine={false}
               axisLine={false}
-              dx={-5}
+              dx={isMobile ? 0 : -5}
               className="text-[9px] font-semibold fill-text-lightSecondary dark:fill-text-darkSecondary"
+              width={isMobile ? 40 : undefined}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255, 255, 255, 0.1)', strokeWidth: 1 }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255, 255, 255, 0.1)', strokeWidth: 1 }} wrapperStyle={{ pointerEvents: 'none' }} />
             <Area 
               type="monotone" 
               dataKey="revenue" 

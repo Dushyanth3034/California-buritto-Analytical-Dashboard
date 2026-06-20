@@ -45,7 +45,7 @@ export const SettlementChart = ({ data }) => {
   }
 
   return (
-    <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm">
+    <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm overflow-hidden">
       <div>
         <h3 className="text-xs font-bold text-text-lightSecondary dark:text-text-darkSecondary uppercase tracking-wider">
           Revenue by Settlement
@@ -55,10 +55,10 @@ export const SettlementChart = ({ data }) => {
         </p>
       </div>
 
-      <div className="w-full h-[300px] sm:h-[350px] mt-4 flex justify-center items-center min-w-0">
+      <div className="w-full h-[300px] sm:h-[350px] mt-4 flex justify-center items-center min-w-0 overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip />} wrapperStyle={{ pointerEvents: 'none' }} />
             <Pie
               data={data}
               cx="50%"
