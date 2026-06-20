@@ -73,7 +73,7 @@ async function runImport() {
     let batch = [];
     
     const insertQuery = `
-      INSERT INTO sales (BillNo, Outlet_Name, Order_Datetime, Group_Name, Order_Type, Item, Price, Quantity, Settlement, Brand)
+      INSERT INTO sales (billno, outlet_name, order_datetime, \`group\`, order_type, item, price, quantity, settlement, brand)
       VALUES ?
     `;
     

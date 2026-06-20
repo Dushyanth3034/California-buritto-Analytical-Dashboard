@@ -9,22 +9,22 @@ async function initializeDatabase() {
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS sales (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        BillNo VARCHAR(50) NOT NULL,
-        Outlet_Name VARCHAR(100) NOT NULL,
-        Order_Datetime DATETIME NOT NULL,
-        Group_Name VARCHAR(100) NOT NULL,
-        Order_Type VARCHAR(50) NOT NULL,
-        Item VARCHAR(200) NOT NULL,
-        Price DECIMAL(10,2) NOT NULL,
-        Quantity INT NOT NULL,
-        Settlement VARCHAR(50) NOT NULL,
-        Brand VARCHAR(100) NOT NULL,
-        INDEX idx_brand (Brand),
-        INDEX idx_outlet (Outlet_Name),
-        INDEX idx_datetime (Order_Datetime),
-        INDEX idx_settlement (Settlement),
-        INDEX idx_order_type (Order_Type),
-        INDEX idx_group (Group_Name)
+        billno VARCHAR(50) NOT NULL,
+        outlet_name VARCHAR(100) NOT NULL,
+        order_datetime DATETIME NOT NULL,
+        \`group\` VARCHAR(100) NOT NULL,
+        order_type VARCHAR(50) NOT NULL,
+        item VARCHAR(200) NOT NULL,
+        price DECIMAL(10,2) NOT NULL,
+        quantity INT NOT NULL,
+        settlement VARCHAR(50) NOT NULL,
+        brand VARCHAR(100) NOT NULL,
+        INDEX idx_brand (brand),
+        INDEX idx_outlet (outlet_name),
+        INDEX idx_datetime (order_datetime),
+        INDEX idx_settlement (settlement),
+        INDEX idx_order_type (order_type),
+        INDEX idx_group (\`group\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
     

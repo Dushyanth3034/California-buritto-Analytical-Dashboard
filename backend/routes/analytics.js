@@ -52,21 +52,21 @@ function buildWhereClause(query) {
 
   // Date range filters
   if (query.startDate) {
-    conditions.push('Order_Datetime >= ?');
+    conditions.push('order_datetime >= ?');
     params.push(`${query.startDate} 00:00:00`);
   }
   if (query.endDate) {
-    conditions.push('Order_Datetime <= ?');
+    conditions.push('order_datetime <= ?');
     params.push(`${query.endDate} 23:59:59`);
   }
 
   // Multi-select categorical filters
   const filterFields = [
-    { paramName: 'brand', dbField: 'Brand' },
-    { paramName: 'outlet', dbField: 'Outlet_Name' },
-    { paramName: 'group', dbField: 'Group_Name' },
-    { paramName: 'settlement', dbField: 'Settlement' },
-    { paramName: 'orderType', dbField: 'Order_Type' }
+    { paramName: 'brand', dbField: 'brand' },
+    { paramName: 'outlet', dbField: 'outlet_name' },
+    { paramName: 'group', dbField: '`group`' },
+    { paramName: 'settlement', dbField: 'settlement' },
+    { paramName: 'orderType', dbField: 'order_type' }
   ];
 
   for (const { paramName, dbField } of filterFields) {
@@ -79,13 +79,13 @@ function buildWhereClause(query) {
 
   // Global Dashboard search (Item name matching)
   if (query.itemSearch) {
-    conditions.push('Item LIKE ?');
+    conditions.push('item LIKE ?');
     params.push(`%${query.itemSearch}%`);
   }
 
   // Table-specific search (multi-column matching)
   if (query.search) {
-    conditions.push('(BillNo LIKE ? OR Item LIKE ? OR Outlet_Name LIKE ? OR Brand LIKE ? OR Settlement LIKE ?)');
+    conditions.push('(billno LIKE ? OR item LIKE ? OR outlet_name LIKE ? OR brand LIKE ? OR settlement LIKE ?)');
     const searchVal = `%${query.search}%`;
     params.push(searchVal, searchVal, searchVal, searchVal, searchVal);
   }
@@ -102,14 +102,14 @@ router.get('/filter-options', async (req, res) => {
     if (cachedFilterOptions) {
       return res.json(cachedFilterOptions);
     }
-    const brands = await cachedQuery('SELECT DISTINCT Brand FROM sales WHERE Brand != "" ORDER BY Brand');
-    const outlets = await cachedQuery('SELECT DISTINCT Outlet_Name FROM sales WHERE Outlet_Name != "" ORDER BY Outlet_Name');
-    const groups = await cachedQuery('SELECT DISTINCT Group_Name FROM sales WHERE Group_Name != "" ORDER BY Group_Name');
-    const settlements = await cachedQuery('SELECT DISTINCT Settlement FROM sales WHERE Settlement != "" ORDER BY Settlement');
-    const orderTypes = await cachedQuery('SELECT DISTINCT Order_Type FROM sales WHERE Order_Type != "" ORDER BY Order_Type');
+    const brands = await cachedQuery('SELECT DISTINCT brand AS Brand FROM sales WHERE brand != "" ORDER BY brand');
+    const outlets = await cachedQuery('SELECT DISTINCT outlet_name AS Outlet_Name FROM sales WHERE outlet_name != "" ORDER BY outlet_name');
+    const groups = await cachedQuery('SELECT DISTINCT `group` AS Group_Name FROM sales WHERE `group` != "" ORDER BY `group`');
+    const settlements = await cachedQuery('SELECT DISTINCT settlement AS Settlement FROM sales WHERE settlement != "" ORDER BY settlement');
+    const orderTypes = await cachedQuery('SELECT DISTINCT order_type AS Order_Type FROM sales WHERE order_type != "" ORDER BY order_type');
     
     // Get min and max dates directly from the database formatted as strings to avoid timezone shift
-    const dates = await cachedQuery('SELECT DATE_FORMAT(MIN(Order_Datetime), "%Y-%m-%d") AS minDate, DATE_FORMAT(MAX(Order_Datetime), "%Y-%m-%d") AS maxDate FROM sales');
+    const dates = await cachedQuery('SELECT DATE_FORMAT(MIN(order_datetime), "%Y-%m-%d") AS minDate, DATE_FORMAT(MAX(order_datetime), "%Y-%m-%d") AS maxDate FROM sales');
 
     cachedFilterOptions = {
       brands: brands.map(row => row.Brand),
@@ -137,11 +137,11 @@ router.get('/kpis', async (req, res) => {
     
     const query = `
       SELECT 
-        COALESCE(SUM(Price * Quantity), 0) AS totalRevenue,
-        COALESCE(SUM(Quantity), 0) AS totalQuantity,
-        COUNT(DISTINCT BillNo) AS totalOrders,
-        COUNT(DISTINCT Brand) AS totalBrands,
-        COUNT(DISTINCT Outlet_Name) AS totalOutlets
+        COALESCE(SUM(price * quantity), 0) AS totalRevenue,
+        COALESCE(SUM(quantity), 0) AS totalQuantity,
+        COUNT(DISTINCT billno) AS totalOrders,
+        COUNT(DISTINCT brand) AS totalBrands,
+        COUNT(DISTINCT outlet_name) AS totalOutlets
       FROM sales
       ${whereString}
     `;
@@ -175,10 +175,10 @@ router.get('/revenue-by-brand', async (req, res) => {
   try {
     const { whereString, params } = buildWhereClause(req.query);
     const query = `
-      SELECT Brand, COALESCE(SUM(Price * Quantity), 0) AS revenue
+      SELECT brand AS Brand, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
-      GROUP BY Brand
+      GROUP BY brand
       ORDER BY revenue DESC
     `;
     const rows = await cachedQuery(query, params);
@@ -194,10 +194,10 @@ router.get('/revenue-by-outlet', async (req, res) => {
   try {
     const { whereString, params } = buildWhereClause(req.query);
     const query = `
-      SELECT Outlet_Name AS outlet, COALESCE(SUM(Price * Quantity), 0) AS revenue
+      SELECT outlet_name AS outlet, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
-      GROUP BY Outlet_Name
+      GROUP BY outlet_name
       ORDER BY revenue DESC
     `;
     const rows = await cachedQuery(query, params);
@@ -213,10 +213,10 @@ router.get('/revenue-by-category', async (req, res) => {
   try {
     const { whereString, params } = buildWhereClause(req.query);
     const query = `
-      SELECT Group_Name AS category, COALESCE(SUM(Price * Quantity), 0) AS revenue
+      SELECT \`group\` AS category, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
-      GROUP BY Group_Name
+      GROUP BY \`group\`
       ORDER BY revenue DESC
     `;
     const rows = await cachedQuery(query, params);
@@ -232,10 +232,10 @@ router.get('/revenue-by-settlement', async (req, res) => {
   try {
     const { whereString, params } = buildWhereClause(req.query);
     const query = `
-      SELECT Settlement AS settlement, COALESCE(SUM(Price * Quantity), 0) AS revenue
+      SELECT settlement AS settlement, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
-      GROUP BY Settlement
+      GROUP BY settlement
       ORDER BY revenue DESC
     `;
     const rows = await cachedQuery(query, params);
@@ -251,10 +251,10 @@ router.get('/revenue-by-order-type', async (req, res) => {
   try {
     const { whereString, params } = buildWhereClause(req.query);
     const query = `
-      SELECT Order_Type AS orderType, COALESCE(SUM(Price * Quantity), 0) AS revenue
+      SELECT order_type AS orderType, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
-      GROUP BY Order_Type
+      GROUP BY order_type
       ORDER BY revenue DESC
     `;
     const rows = await cachedQuery(query, params);
@@ -270,10 +270,10 @@ router.get('/top-products', async (req, res) => {
   try {
     const { whereString, params } = buildWhereClause(req.query);
     const query = `
-      SELECT Item AS item, COALESCE(SUM(Quantity), 0) AS quantity, COALESCE(SUM(Price * Quantity), 0) AS revenue
+      SELECT item AS item, COALESCE(SUM(quantity), 0) AS quantity, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
-      GROUP BY Item
+      GROUP BY item
       ORDER BY quantity DESC
       LIMIT 10
     `;
@@ -294,7 +294,7 @@ router.get('/monthly-revenue', async (req, res) => {
   try {
     const { whereString, params } = buildWhereClause(req.query);
     const query = `
-      SELECT DATE_FORMAT(Order_Datetime, '%Y-%m') AS month, COALESCE(SUM(Price * Quantity), 0) AS revenue
+      SELECT DATE_FORMAT(order_datetime, '%Y-%m') AS month, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
       GROUP BY month
@@ -313,7 +313,7 @@ router.get('/revenue-trend', async (req, res) => {
   try {
     const { whereString, params } = buildWhereClause(req.query);
     const query = `
-      SELECT DATE_FORMAT(Order_Datetime, '%Y-%m-%d') AS date, COALESCE(SUM(Price * Quantity), 0) AS revenue
+      SELECT DATE_FORMAT(order_datetime, '%Y-%m-%d') AS date, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
       GROUP BY date
@@ -339,6 +339,22 @@ router.get('/sales', async (req, res) => {
       'BillNo', 'Outlet_Name', 'Order_Datetime', 'Group_Name', 
       'Order_Type', 'Item', 'Price', 'Quantity', 'Settlement', 'Brand', 'Revenue'
     ];
+    
+    // Map allowed sort fields to lowercase database columns
+    const dbSortFieldMap = {
+      'BillNo': 'billno',
+      'Outlet_Name': 'outlet_name',
+      'Order_Datetime': 'order_datetime',
+      'Group_Name': '`group`',
+      'Order_Type': 'order_type',
+      'Item': 'item',
+      'Price': 'price',
+      'Quantity': 'quantity',
+      'Settlement': 'settlement',
+      'Brand': 'brand',
+      'Revenue': '(price * quantity)'
+    };
+    
     const sortByParam = req.query.sortBy || 'Order_Datetime';
     const sortBy = allowedSortFields.includes(sortByParam) ? sortByParam : 'Order_Datetime';
     
@@ -348,25 +364,21 @@ router.get('/sales', async (req, res) => {
     const { whereString, params } = buildWhereClause(req.query);
 
     // SQL query to fetch paginated rows.
-    // Note: 'Revenue' is a computed column we order by when requested.
-    let orderExpression = sortBy;
-    if (sortBy === 'Revenue') {
-      orderExpression = '(Price * Quantity)';
-    }
+    const orderExpression = dbSortFieldMap[sortBy] || 'order_datetime';
 
     const dataQuery = `
       SELECT 
-        BillNo, 
-        Outlet_Name, 
-        Order_Datetime, 
-        Group_Name AS \`Group\`, 
-        Order_Type, 
-        Item, 
-        Price, 
-        Quantity, 
-        Settlement, 
-        Brand, 
-        (Price * Quantity) AS Revenue
+        billno AS BillNo, 
+        outlet_name AS Outlet_Name, 
+        order_datetime AS Order_Datetime, 
+        \`group\` AS \`Group\`, 
+        order_type AS Order_Type, 
+        item AS Item, 
+        price AS Price, 
+        quantity AS Quantity, 
+        settlement AS Settlement, 
+        brand AS Brand, 
+        (price * quantity) AS Revenue
       FROM sales
       ${whereString}
       ORDER BY ${orderExpression} ${sortOrder}
@@ -412,17 +424,17 @@ router.get('/dashboard-summary', async (req, res) => {
     // Define all database queries to execute in parallel
     const kpisQuery = `
       SELECT 
-        COALESCE(SUM(Price * Quantity), 0) AS totalRevenue,
-        COALESCE(SUM(Quantity), 0) AS totalQuantity,
-        COUNT(DISTINCT BillNo) AS totalOrders,
-        COUNT(DISTINCT Brand) AS totalBrands,
-        COUNT(DISTINCT Outlet_Name) AS totalOutlets
+        COALESCE(SUM(price * quantity), 0) AS totalRevenue,
+        COALESCE(SUM(quantity), 0) AS totalQuantity,
+        COUNT(DISTINCT billno) AS totalOrders,
+        COUNT(DISTINCT brand) AS totalBrands,
+        COUNT(DISTINCT outlet_name) AS totalOutlets
       FROM sales
       ${whereString}
     `;
 
     const trendQuery = `
-      SELECT DATE_FORMAT(Order_Datetime, '%Y-%m-%d') AS date, COALESCE(SUM(Price * Quantity), 0) AS revenue
+      SELECT DATE_FORMAT(order_datetime, '%Y-%m-%d') AS date, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
       GROUP BY date
@@ -431,68 +443,68 @@ router.get('/dashboard-summary', async (req, res) => {
 
     const brandQuery = `
       SELECT 
-        Brand AS name, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue,
-        COUNT(DISTINCT BillNo) AS orders,
-        COALESCE(SUM(Quantity), 0) AS quantity
+        brand AS name, 
+        COALESCE(SUM(price * quantity), 0) AS revenue,
+        COUNT(DISTINCT billno) AS orders,
+        COALESCE(SUM(quantity), 0) AS quantity
       FROM sales
       ${whereString}
-      GROUP BY Brand
+      GROUP BY brand
       ORDER BY revenue DESC
     `;
 
     const outletQuery = `
       SELECT 
-        Outlet_Name AS name, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue
+        outlet_name AS name, 
+        COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
-      GROUP BY Outlet_Name
+      GROUP BY outlet_name
       ORDER BY revenue DESC
     `;
 
     const categoryQuery = `
       SELECT 
-        Group_Name AS name, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue,
-        COALESCE(SUM(Quantity), 0) AS quantity
+        \`group\` AS name, 
+        COALESCE(SUM(price * quantity), 0) AS revenue,
+        COALESCE(SUM(quantity), 0) AS quantity
       FROM sales
       ${whereString}
-      GROUP BY Group_Name
+      GROUP BY \`group\`
       ORDER BY revenue DESC
     `;
 
     const productQuery = `
       SELECT 
-        Item AS name, 
-        COALESCE(SUM(Quantity), 0) AS quantity, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue
+        item AS name, 
+        COALESCE(SUM(quantity), 0) AS quantity, 
+        COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
-      GROUP BY Item
+      GROUP BY item
       ORDER BY quantity DESC
       LIMIT 10
     `;
 
     const settlementQuery = `
       SELECT 
-        Settlement AS name, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue,
+        settlement AS name, 
+        COALESCE(SUM(price * quantity), 0) AS revenue,
         COUNT(*) AS count
       FROM sales
       ${whereString}
-      GROUP BY Settlement
+      GROUP BY settlement
       ORDER BY count DESC
     `;
 
     const orderTypeQuery = `
       SELECT 
-        Order_Type AS name, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue,
+        order_type AS name, 
+        COALESCE(SUM(price * quantity), 0) AS revenue,
         COUNT(*) AS count
       FROM sales
       ${whereString}
-      GROUP BY Order_Type
+      GROUP BY order_type
       ORDER BY revenue DESC
     `;
 
@@ -570,73 +582,73 @@ router.get('/ai-insights', async (req, res) => {
     
     const kpisQuery = `
       SELECT 
-        COALESCE(SUM(Price * Quantity), 0) AS totalRevenue,
-        COALESCE(SUM(Quantity), 0) AS totalQuantity,
-        COUNT(DISTINCT BillNo) AS totalOrders,
-        COUNT(DISTINCT Brand) AS totalBrands,
-        COUNT(DISTINCT Outlet_Name) AS totalOutlets
+        COALESCE(SUM(price * quantity), 0) AS totalRevenue,
+        COALESCE(SUM(quantity), 0) AS totalQuantity,
+        COUNT(DISTINCT billno) AS totalOrders,
+        COUNT(DISTINCT brand) AS totalBrands,
+        COUNT(DISTINCT outlet_name) AS totalOutlets
       FROM sales
       ${whereString}
     `;
     const brandQuery = `
       SELECT 
-        Brand AS name, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue,
-        COUNT(DISTINCT BillNo) AS orders,
-        COALESCE(SUM(Quantity), 0) AS quantity
+        brand AS name, 
+        COALESCE(SUM(price * quantity), 0) AS revenue,
+        COUNT(DISTINCT billno) AS orders,
+        COALESCE(SUM(quantity), 0) AS quantity
       FROM sales
       ${whereString}
-      GROUP BY Brand
+      GROUP BY brand
       ORDER BY revenue DESC
     `;
     const outletQuery = `
       SELECT 
-        Outlet_Name AS name, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue
+        outlet_name AS name, 
+        COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
-      GROUP BY Outlet_Name
+      GROUP BY outlet_name
       ORDER BY revenue DESC
     `;
     const categoryQuery = `
       SELECT 
-        Group_Name AS name, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue,
-        COALESCE(SUM(Quantity), 0) AS quantity
+        \`group\` AS name, 
+        COALESCE(SUM(price * quantity), 0) AS revenue,
+        COALESCE(SUM(quantity), 0) AS quantity
       FROM sales
       ${whereString}
-      GROUP BY Group_Name
+      GROUP BY \`group\`
       ORDER BY revenue DESC
     `;
     const productQuery = `
       SELECT 
-        Item AS name, 
-        COALESCE(SUM(Quantity), 0) AS quantity, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue
+        item AS name, 
+        COALESCE(SUM(quantity), 0) AS quantity, 
+        COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
-      GROUP BY Item
+      GROUP BY item
       ORDER BY quantity DESC
       LIMIT 10
     `;
     const orderTypeQuery = `
       SELECT 
-        Order_Type AS name, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue,
+        order_type AS name, 
+        COALESCE(SUM(price * quantity), 0) AS revenue,
         COUNT(*) AS count
       FROM sales
       ${whereString}
-      GROUP BY Order_Type
+      GROUP BY order_type
       ORDER BY revenue DESC
     `;
     const settlementQuery = `
       SELECT 
-        Settlement AS name, 
-        COALESCE(SUM(Price * Quantity), 0) AS revenue,
+        settlement AS name, 
+        COALESCE(SUM(price * quantity), 0) AS revenue,
         COUNT(*) AS count
       FROM sales
       ${whereString}
-      GROUP BY Settlement
+      GROUP BY settlement
       ORDER BY count DESC
     `;
 
