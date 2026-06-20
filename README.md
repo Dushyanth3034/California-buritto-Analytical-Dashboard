@@ -41,9 +41,11 @@ A high-performance, responsive full-stack sales analytics dashboard designed to 
 
 ## 🏛️ Project Overview
 
+VoltAnalytics is a cloud-hosted analytics dashboard built to process and visualize over 300,000+ sales records. The application features user authentication, a fully responsive mobile-first design, performance-optimized database queries, and is prepared for production deployment across separated cloud platforms.
+
 The business problem solved by **VoltAnalytics** is the performance and usability bottleneck that occurs when analyzing large datasets. Businesses processing hundreds of thousands of retail transactions struggle to generate quick operational summaries (Revenue Trends, Brand performance, Outlet margins, and Settlement methods) without encountering slow loads or system crashes.
 
-VoltAnalytics processes **300,000+ sales records** performantly. By moving aggregations to the database layer, implementing indexing, debouncing client inputs, and decoupling heavy background calculations (like AI Insights), it reduces dashboard update times from **45 seconds to sub-seconds (under 1 second)** on standard viewports.
+VoltAnalytics processes **300,000+ sales records** performantly. By moving aggregations to the database layer, implementing indexing, debouncing client inputs, and decoupling heavy background calculations (like AI Insights), it significantly improves dashboard performance through database indexing, optimized date filtering, server-side aggregations, and query optimization.
 
 ### 🏗️ ASCII Architecture Diagram
 
@@ -160,16 +162,28 @@ The transactional database schema defines the following columns:
 
 ## ⚡ Performance Optimizations
 
-1. **Decoupled AI Insights Engine**:
-   - The heavy `/api/ai-insights` query is executed asynchronously on initial load and is not awaited in the main summary promise loop.
-   - For filter modifications, `/api/ai-insights` is skipped. A manual **"Generate Insights"** button triggers the endpoint only when requested by the user, avoiding blocking the main charts.
-2. **Database Indices**: Indexes on `brand`, `outlet_name`, `group`, `order_date`, and `settlement` ensure query scans take less than **250ms**.
-3. **In-Memory Cache (TTL Caching)**:
-   - Queries are cached in-memory with a **5-minute Time-To-Live (TTL)**.
-   - Inflight queries are tracked to prevent duplicate concurrent queries from hitting the database (request deduplication).
-4. **Client-Side Debouncing**: Filter inputs are debounced by **150ms** to prevent intermediate network queries while users make selections.
-5. **Request Logging**: Middleware measures and logs exact execution times to standard console output:
-   `[API LOG] GET /api/dashboard-summary - 200 - 415ms`
+### Decoupled AI Insights Engine
+The heavy `/api/ai-insights` query is executed asynchronously on initial load and is not awaited in the main summary promise loop. For filter modifications, `/api/ai-insights` is skipped. A manual **"Generate Insights"** button triggers the endpoint only when requested by the user, avoiding blocking the main charts.
+
+### Database Indices
+Indexes on `brand`, `outlet_name`, `group`, `order_date`, and `settlement` optimize query execution times by avoiding full table scans.
+
+### Date Filtering Optimization
+- The original dataset stored dates as strings in `order_datetime`.
+- Runtime `STR_TO_DATE` conversions caused expensive full-table scans.
+- A new indexed `order_date` column was introduced.
+- Analytics queries now filter directly using `order_date`.
+- This significantly improved dashboard responsiveness when working with 300,000+ records.
+
+### In-Memory Cache (TTL Caching)
+- Queries are cached in-memory with a **5-minute Time-To-Live (TTL)**.
+- Inflight queries are tracked to prevent duplicate concurrent queries from hitting the database (request deduplication).
+
+### Client-Side Debouncing
+Filter inputs are debounced by **150ms** to prevent intermediate network queries while users make selections.
+
+### Request Logging
+Middleware measures and logs request execution times to standard console output for monitoring performance.
 
 ---
 
@@ -252,8 +266,8 @@ The transactional database schema defines the following columns:
 
 ## ⚖️ Key Trade-offs
 
-- **TiDB Cloud vs. Local MySQL**: TiDB Cloud offers horizontal scalability and distributed transactions out of the box, which is ideal for large analytical datasets. However, network latency between the backend server (Render) and TiDB Cloud (AWS region) can add 50-100ms compared to a local server.
-- **Free-Tier Cold Starts (Render)**: Render free tier spins down backend web services after 15 minutes of inactivity. The initial load might take up to 50 seconds to boot the container, though performance is optimal once running.
+- **TiDB Cloud vs. Local MySQL**: TiDB Cloud offers horizontal scalability and distributed transactions out of the box, which is ideal for large analytical datasets. However, network latency between the backend server (Render) and TiDB Cloud (AWS region) can add slight latency compared to a local server.
+- **Free-Tier Cold Starts (Render)**: Render free tier spins down backend web services after 15 minutes of inactivity. The initial load might take up to a minute to boot the container, though performance is optimal once running.
 - **Background Fetching vs. Real-Time Sync**: Decoupling the AI insights means they do not immediately reflect new filters on initial click. This is a deliberate trade-off to ensure a responsive UI, prioritizing interactive charts over compute-intensive metrics.
 
 ---
@@ -321,4 +335,4 @@ Project/
 
 ## 🏁 Conclusion
 
-**VoltAnalytics** demonstrates a robust architecture for high-concurrency business intelligence applications. By optimizing database engines, decoupling heavy computation endpoints, implementing caching, and utilizing responsive design, it offers a performant analytics platform for processing large datasets on both desktop and mobile viewports.
+VoltAnalytics delivers a complete full-stack architecture optimized for processing large-scale sales datasets of over 300,000 records. Through cloud deployment, database indexing, and query optimization, the dashboard provides reliable business analytics capabilities and responsive visualization without performance degradation.
