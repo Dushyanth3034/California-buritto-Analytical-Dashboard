@@ -69,7 +69,7 @@ export const CategoryChart = ({ data }) => {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
-            margin={isMobile ? { top: 10, right: 10, left: 0, bottom: 40 } : { top: 10, right: 10, left: 10, bottom: 0 }}
+            margin={isMobile ? { top: 10, right: 10, left: 25, bottom: 40 } : { top: 10, right: 10, left: 10, bottom: 0 }}
           >
             <CartesianGrid 
               strokeDasharray="3 3" 
@@ -91,7 +91,7 @@ export const CategoryChart = ({ data }) => {
               tickLine={false}
               axisLine={false}
               className="text-[9px] font-semibold fill-text-lightSecondary dark:fill-text-darkSecondary"
-              width={isMobile ? 40 : 55}
+              width={isMobile ? 50 : 55}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} wrapperStyle={{ pointerEvents: 'none' }} />
             <Bar 
