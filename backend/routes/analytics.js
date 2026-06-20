@@ -2,13 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 
-const DB_DATE_EXPR = `COALESCE(
-  STR_TO_DATE(order_datetime, '%d/%m/%Y %H:%i:%s'),
-  STR_TO_DATE(order_datetime, '%d/%m/%Y %H:%i'),
-  STR_TO_DATE(order_datetime, '%Y-%m-%d %H:%i:%s'),
-  order_datetime
-)`;
-
+const DB_DATE_EXPR = 'order_date';
 const queryCache = new Map();
 const inflightQueries = new Map();
 
