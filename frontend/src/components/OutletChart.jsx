@@ -68,7 +68,7 @@ export const OutletChart = ({ data }) => {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
-            margin={isMobile ? { top: 10, right: 10, left: 25, bottom: 40 } : { top: 10, right: 10, left: 10, bottom: 0 }}
+            margin={isMobile ? { top: 10, right: 10, left: 25, bottom: 40 } : { top: 10, right: 10, left: 10, bottom: 40 }}
           >
             <CartesianGrid 
               strokeDasharray="3 3" 
@@ -81,9 +81,9 @@ export const OutletChart = ({ data }) => {
               axisLine={false}
               className={isMobile ? "text-[8px] font-semibold fill-text-lightSecondary dark:fill-text-darkSecondary" : "text-[9px] font-semibold fill-text-lightSecondary dark:fill-text-darkSecondary"}
               interval={0}
-              angle={isMobile ? -45 : 0}
-              textAnchor={isMobile ? "end" : "middle"}
-              height={isMobile ? 55 : 30}
+              angle={-45}
+              textAnchor="end"
+              height={55}
             />
             <YAxis 
               tickFormatter={formatYAxis}
