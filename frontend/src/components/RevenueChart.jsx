@@ -51,7 +51,7 @@ export const RevenueChart = ({ data }) => {
     }
   };
 
-  if (!isMounted || !data || data.length === 0) {
+  if (!isMounted) {
     return (
       <div className="w-full h-full min-h-[300px] flex flex-col justify-between p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm animate-pulse">
         <div>
@@ -60,6 +60,29 @@ export const RevenueChart = ({ data }) => {
         </div>
         <div className="w-full h-[300px] sm:h-[350px] mt-4 flex justify-center items-center">
           <div className="h-6 w-6 rounded-full border-2 border-zinc-200 dark:border-zinc-800 border-t-primary animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="w-full h-full min-h-[300px] flex flex-col p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm">
+        <div>
+          <h3 className="text-xs font-bold text-text-lightSecondary dark:text-text-darkSecondary uppercase tracking-wider">
+            Revenue Trend
+          </h3>
+          <p className="text-[10px] text-text-lightSecondary dark:text-text-darkSecondary mt-0.5">
+            Daily net sales performance
+          </p>
+        </div>
+        <div className="w-full h-[300px] sm:h-[350px] mt-4 flex flex-col justify-center items-center gap-2 border border-dashed border-surface-lightBorder dark:border-surface-darkBorder rounded-xl bg-zinc-50/50 dark:bg-surface-darkCard/10">
+          <p className="text-xs font-bold text-text-lightSecondary dark:text-text-darkSecondary">
+            No Trend Records Available
+          </p>
+          <p className="text-[10px] text-text-lightSecondary dark:text-text-darkSecondary">
+            Please adjust the date range filters.
+          </p>
         </div>
       </div>
     );

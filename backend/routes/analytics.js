@@ -2,6 +2,13 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 
+const DB_DATE_EXPR = `COALESCE(
+  STR_TO_DATE(order_datetime, '%d/%m/%Y %H:%i:%s'),
+  STR_TO_DATE(order_datetime, '%d/%m/%Y %H:%i'),
+  STR_TO_DATE(order_datetime, '%Y-%m-%d %H:%i:%s'),
+  order_datetime
+)`;
+
 const queryCache = new Map();
 const inflightQueries = new Map();
 
@@ -52,11 +59,11 @@ function buildWhereClause(query) {
 
   // Date range filters
   if (query.startDate) {
-    conditions.push('order_datetime >= ?');
+    conditions.push(`${DB_DATE_EXPR} >= ?`);
     params.push(`${query.startDate} 00:00:00`);
   }
   if (query.endDate) {
-    conditions.push('order_datetime <= ?');
+    conditions.push(`${DB_DATE_EXPR} <= ?`);
     params.push(`${query.endDate} 23:59:59`);
   }
 
@@ -109,7 +116,7 @@ router.get('/filter-options', async (req, res) => {
     const orderTypes = await cachedQuery('SELECT DISTINCT order_type AS Order_Type FROM sales WHERE order_type != "" ORDER BY order_type');
     
     // Get min and max dates directly from the database formatted as strings to avoid timezone shift
-    const dates = await cachedQuery('SELECT DATE_FORMAT(MIN(order_datetime), "%Y-%m-%d") AS minDate, DATE_FORMAT(MAX(order_datetime), "%Y-%m-%d") AS maxDate FROM sales');
+    const dates = await cachedQuery(`SELECT DATE_FORMAT(MIN(${DB_DATE_EXPR}), "%Y-%m-%d") AS minDate, DATE_FORMAT(MAX(${DB_DATE_EXPR}), "%Y-%m-%d") AS maxDate FROM sales`);
 
     cachedFilterOptions = {
       brands: brands.map(row => row.Brand),
@@ -294,7 +301,7 @@ router.get('/monthly-revenue', async (req, res) => {
   try {
     const { whereString, params } = buildWhereClause(req.query);
     const query = `
-      SELECT DATE_FORMAT(order_datetime, '%Y-%m') AS month, COALESCE(SUM(price * quantity), 0) AS revenue
+      SELECT DATE_FORMAT(${DB_DATE_EXPR}, '%Y-%m') AS month, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
       GROUP BY month
@@ -313,13 +320,14 @@ router.get('/revenue-trend', async (req, res) => {
   try {
     const { whereString, params } = buildWhereClause(req.query);
     const query = `
-      SELECT DATE_FORMAT(order_datetime, '%Y-%m-%d') AS date, COALESCE(SUM(price * quantity), 0) AS revenue
+      SELECT DATE_FORMAT(${DB_DATE_EXPR}, '%Y-%m-%d') AS date, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
       GROUP BY date
       ORDER BY date ASC
     `;
     const rows = await cachedQuery(query, params);
+    console.log("Revenue Trend Rows:", rows.length);
     res.json(rows.map(r => ({ date: r.date, revenue: parseFloat(r.revenue) })));
   } catch (error) {
     console.error('Error fetching daily revenue trend:', error);
@@ -344,7 +352,7 @@ router.get('/sales', async (req, res) => {
     const dbSortFieldMap = {
       'BillNo': 'billno',
       'Outlet_Name': 'outlet_name',
-      'Order_Datetime': 'order_datetime',
+      'Order_Datetime': DB_DATE_EXPR,
       'Group_Name': '`group`',
       'Order_Type': 'order_type',
       'Item': 'item',
@@ -364,7 +372,7 @@ router.get('/sales', async (req, res) => {
     const { whereString, params } = buildWhereClause(req.query);
 
     // SQL query to fetch paginated rows.
-    const orderExpression = dbSortFieldMap[sortBy] || 'order_datetime';
+    const orderExpression = dbSortFieldMap[sortBy] || DB_DATE_EXPR;
 
     const dataQuery = `
       SELECT 
@@ -434,7 +442,7 @@ router.get('/dashboard-summary', async (req, res) => {
     `;
 
     const trendQuery = `
-      SELECT DATE_FORMAT(order_datetime, '%Y-%m-%d') AS date, COALESCE(SUM(price * quantity), 0) AS revenue
+      SELECT DATE_FORMAT(${DB_DATE_EXPR}, '%Y-%m-%d') AS date, COALESCE(SUM(price * quantity), 0) AS revenue
       FROM sales
       ${whereString}
       GROUP BY date
@@ -527,6 +535,8 @@ router.get('/dashboard-summary', async (req, res) => {
       cachedQuery(settlementQuery, params),
       cachedQuery(orderTypeQuery, params)
     ]);
+
+    console.log("Revenue Trend Rows (Summary):", trendRows.length);
 
     const kpisRaw = kpiRows[0];
     const totalRevenue = parseFloat(kpisRaw.totalRevenue);

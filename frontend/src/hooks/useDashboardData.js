@@ -96,6 +96,7 @@ export const useDashboardData = (filters) => {
         ]);
 
         if (summaryRes && summaryRes.data) {
+          console.log("Revenue Trend API Response:", summaryRes.data.charts.trendData);
           setKpis(summaryRes.data.kpis);
           setChartData(summaryRes.data.charts);
         }
