@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
 const API_BASE = `${import.meta.env.VITE_API_URL || 'https://california-dashboard-api.onrender.com'}/api`;
@@ -40,6 +40,8 @@ export const useDashboardData = (filters) => {
   });
 
   const [aiInsights, setAiInsights] = useState([]);
+  const hasLoadedAiRef = useRef(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -68,6 +70,31 @@ export const useDashboardData = (filters) => {
     fetchDomains();
   }, []);
 
+  const fetchAiInsights = useCallback(async () => {
+    if (!filters) return;
+    setIsAiLoading(true);
+    try {
+      const params = {
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        search: filters.itemSearch,
+        brand: filters.brand.join(','),
+        outlet: filters.outlet.join(','),
+        group: filters.group.join(','),
+        settlement: filters.settlement.join(','),
+        orderType: filters.orderType.join(',')
+      };
+      const response = await axios.get(`${API_BASE}/ai-insights`, { params });
+      if (response && response.data) {
+        setAiInsights(response.data.insights || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch AI insights manually:', err);
+    } finally {
+      setIsAiLoading(false);
+    }
+  }, [filters]);
+
   // 2. Fetch KPIs and Chart data whenever filters change
   useEffect(() => {
     if (!filters) return;
@@ -87,24 +114,29 @@ export const useDashboardData = (filters) => {
           orderType: filters.orderType.join(',')
         };
 
-        const [summaryRes, insightsRes] = await Promise.all([
-          axios.get(`${API_BASE}/dashboard-summary`, { params }),
-          axios.get(`${API_BASE}/ai-insights`, { params }).catch(err => {
-            console.error('Failed to fetch AI insights:', err);
-            return null;
-          })
-        ]);
+        if (!hasLoadedAiRef.current && filters.startDate) {
+          hasLoadedAiRef.current = true;
+          setIsAiLoading(true);
+          axios.get(`${API_BASE}/ai-insights`, { params })
+            .then(res => {
+              if (res && res.data) {
+                setAiInsights(res.data.insights || []);
+              }
+            })
+            .catch(err => {
+              console.error('Failed to fetch AI insights on initial load:', err);
+            })
+            .finally(() => {
+              setIsAiLoading(false);
+            });
+        }
+
+        const summaryRes = await axios.get(`${API_BASE}/dashboard-summary`, { params });
 
         if (summaryRes && summaryRes.data) {
           console.log("Revenue Trend API Response:", summaryRes.data.charts.trendData);
           setKpis(summaryRes.data.kpis);
           setChartData(summaryRes.data.charts);
-        }
-        
-        if (insightsRes && insightsRes.data) {
-          setAiInsights(insightsRes.data.insights || []);
-        } else {
-          setAiInsights([]);
         }
 
         setError(null);
@@ -135,7 +167,9 @@ export const useDashboardData = (filters) => {
     isLoading,
     error,
     isBackgroundLoading,
-    backgroundStatus
+    backgroundStatus,
+    fetchAiInsights,
+    isAiLoading
   };
 };
 

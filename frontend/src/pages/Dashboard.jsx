@@ -46,7 +46,9 @@ export const Dashboard = () => {
     isLoading,
     error,
     isBackgroundLoading,
-    backgroundStatus
+    backgroundStatus,
+    fetchAiInsights,
+    isAiLoading
   } = useDashboardData(filters);
 
   const [isExporting, setIsExporting] = useState(false);
@@ -227,7 +229,13 @@ export const Dashboard = () => {
             {renderStage >= 2 ? (
               <div className="flex flex-col gap-6">
                 <Suspense fallback={<div className="h-64 rounded-2xl bg-zinc-800 animate-pulse" />}>
-                  <InsightsPanel kpis={kpis} charts={chartData} aiInsights={aiInsights} />
+                  <InsightsPanel
+                    kpis={kpis}
+                    charts={chartData}
+                    aiInsights={aiInsights}
+                    onGenerateInsights={fetchAiInsights}
+                    isAiLoading={isAiLoading}
+                  />
                 </Suspense>
 
                 {/* Trend line and Settlement share */}

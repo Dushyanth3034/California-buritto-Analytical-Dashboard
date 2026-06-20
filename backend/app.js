@@ -9,6 +9,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Request execution time logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[API LOG] ${req.method} ${req.originalUrl} - ${res.statusCode} - ${duration}ms`);
+  });
+  next();
+});
+
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api', authMiddleware, analyticsRouter);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiTrendingUp, FiAlertCircle, FiZap, FiCheckSquare, FiInfo } from 'react-icons/fi';
+import { FiTrendingUp, FiAlertCircle, FiZap, FiCheckSquare, FiInfo, FiLoader } from 'react-icons/fi';
 import { formatCurrency, formatLargeNumber } from '../utils/helpers';
 
 // Helper to convert backend insight string to styled object
@@ -39,7 +39,7 @@ const getInsightDetails = (text) => {
  * Premium Business Insights Engine.
  * Dynamically generates text summaries, metrics alerts, and strategic business recommendations.
  */
-export const InsightsPanel = ({ kpis, charts, aiInsights = [] }) => {
+export const InsightsPanel = ({ kpis, charts, aiInsights = [], onGenerateInsights, isAiLoading }) => {
   const { brandRevenueData, outletRevenueData, productData, categoryRevenueData, orderTypeData, settlementData } = charts;
 
   // Compute leaders and percentages dynamically
@@ -90,16 +90,37 @@ export const InsightsPanel = ({ kpis, charts, aiInsights = [] }) => {
   return (
     <div className="w-full h-full flex flex-col gap-5 p-5 rounded-2xl border border-surface-lightBorder dark:border-surface-darkBorder bg-white/80 dark:bg-surface-darkCard/40 shadow-sm">
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-surface-lightBorder dark:border-surface-darkBorder pb-4">
-        <FiZap className="w-5 h-5 text-primary" />
-        <div>
-          <h3 className="text-xs font-bold text-text-lightSecondary dark:text-text-darkSecondary uppercase tracking-wider">
-            AI Business Insights
-          </h3>
-          <p className="text-[10px] text-text-lightSecondary dark:text-text-darkSecondary mt-0.5">
-            Automated recommendations & operational highlights
-          </p>
+      <div className="flex justify-between items-center border-b border-surface-lightBorder dark:border-surface-darkBorder pb-4">
+        <div className="flex items-center gap-2">
+          <FiZap className="w-5 h-5 text-primary" />
+          <div>
+            <h3 className="text-xs font-bold text-text-lightSecondary dark:text-text-darkSecondary uppercase tracking-wider">
+              AI Business Insights
+            </h3>
+            <p className="text-[10px] text-text-lightSecondary dark:text-text-darkSecondary mt-0.5">
+              Automated recommendations & operational highlights
+            </p>
+          </div>
         </div>
+        {onGenerateInsights && (
+          <button
+            onClick={onGenerateInsights}
+            disabled={isAiLoading}
+            className="flex items-center gap-1.5 rounded-xl border border-primary/20 hover:border-primary/40 bg-zinc-50 dark:bg-surface-darkCard text-[10px] font-bold text-primary px-2.5 py-1.5 disabled:opacity-50 transition-colors"
+          >
+            {isAiLoading ? (
+              <>
+                <FiLoader className="w-3.5 h-3.5 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <FiZap className="w-3.5 h-3.5" />
+                Generate Insights
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Grid: Stats Summary + Recommendations */}
